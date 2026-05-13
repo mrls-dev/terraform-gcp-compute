@@ -147,13 +147,13 @@ jobs:
           ((github.ref == 'refs/heads/main' && github.event_name == 'push') ||
           (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
         run: |
-          echo "✅ GPU Instance Deployed Successfully!"
+          echo "GPU Instance Deployed Successfully!"
           echo ""
-          echo "📊 Instance Details:"
+          echo "Instance Details:"
           terraform output -json | jq '.'
           echo ""
-          echo "🔌 SSH Command:"
+          echo "SSH Command:"
           terraform output -raw ssh_command
           echo ""
-          echo "🧪 Test CUDA:"
+          echo "Test CUDA:"
           echo "cd /opt/cuda-samples && ./hello_cuda"
