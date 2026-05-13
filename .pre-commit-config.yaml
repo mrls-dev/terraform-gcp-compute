@@ -1,0 +1,83 @@
+# Pre-commit configuration
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Terraform formatting and validation
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.0
+    hooks:
+      - id: terraform_fmt
+        name: Terraform fmt
+        description: Rewrites Terraform files to canonical format
+        
+      - id: terraform_validate
+        name: Terraform validate
+        description: Validates Terraform configuration
+        args:
+          - --hook-config=--retry-once-with-cleanup=true
+          - --tf-init-args=-backend=false
+          
+      - id: terraform_docs
+        name: Terraform docs
+        description: Generates Terraform documentation
+        args:
+          - --hook-config=--path-to-file=TERRAFORM.md
+          - --hook-config=--add-to-existing-file=true
+          
+      - id: terraform_tflint
+        name: TFLint
+        description: Lints Terraform code
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+          
+      - id: terraform_tfsec
+        name: TFSec
+        description: Security scanner for Terraform code
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        
+      - id: end-of-file-fixer
+        name: Fix end of files
+        
+      - id: check-yaml
+        name: Check YAML syntax
+        
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=1000']
+        
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        
+      - id: detect-private-key
+        name: Detect private keys
+        
+      - id: check-case-conflict
+        name: Check for case conflicts
+        
+      - id: mixed-line-ending
+        name: Check line endings
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        name: Markdown lint
+        args: ['--fix']

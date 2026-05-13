@@ -1,0 +1,163 @@
+name: 'Terraform - GPU Compute'
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.tf'
+      - 'gpu.tfvars'
+      - 'backend-gpu.hcl'
+      - '.github/workflows/terraform-dev.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.tf'
+      - 'gpu.tfvars'
+      - 'backend-gpu.hcl'
+      - '.github/workflows/terraform-dev.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TERRAFORM_VERSION: '1.5.0'
+  WORKING_DIR: '.'
+  GCP_PROJECT_ID: 'project-70f3c2b9-8f91-41f7-b5c'
+  GCP_REGION: 'us-central1'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  terraform:
+    name: 'Terraform GPU Instance'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/703972289017/locations/global/workloadIdentityPools/github-pool-app/providers/github-provider-app'
+          service_account: 'terraform@project-70f3c2b9-8f91-41f7-b5c.iam.gserviceaccount.com'
+          token_format: 'access_token'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=backend-gpu.hcl
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file=gpu.tfvars -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Comment PR with Plan
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### 🎮 GPU Instance Terraform Plan
+            
+            #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            
+            <details><summary>Show GPU Instance Plan</summary>
+            
+            \`\`\`terraform
+            ${process.env.PLAN_OUTPUT}
+            \`\`\`
+            
+            </details>
+            
+            **Instance**: NVIDIA Tesla T4 GPU with n1-standard-4 (4 vCPU, 15 GB RAM)  
+            **Cost**: ~$0.15/hour (preemptible) or ~$0.50/hour (regular)
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name|
+          (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+        run: terraform apply -auto-approve tfplan
+
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: terraform destroy -var-file=gpu.tfvars -auto-approve
+
+      - name: Upload Plan Artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-gpu-compute
+          path: tfplan
+          retention-days: 5
+
+      - name: Post Deployment Info
+        if: |
+          success() &&
+          ((github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
+        run: |
+          echo "✅ GPU Instance Deployed Successfully!"
+          echo ""
+          echo "📊 Instance Details:"
+          terraform output -json | jq '.'
+          echo ""
+          echo "🔌 SSH Command:"
+          terraform output -raw ssh_command
+          echo ""
+          echo "🧪 Test CUDA:"
+          echo "cd /opt/cuda-samples && ./hello_cuda"me == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-dev-compute
+          path: tfplan
+          retention-days: 5

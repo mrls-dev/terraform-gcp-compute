@@ -1,0 +1,142 @@
+##########################
+# Example Terraform Variables for GCP GPU Compute Infrastructure
+##########################
+# This repository deploys a GPU instance with NVIDIA Tesla T4 for CUDA development
+# Copy this to terraform.tfvars and customize for your environment
+#
+# Default configuration: gpu.tfvars (GPU instance with CUDA toolkit)
+#
+# Usage: 
+#   terraform plan -var-file=gpu.tfvars
+#   terraform apply -var-file=gpu.tfvars
+
+##########################
+# Required: Project Configuration
+##########################
+# GCP project ID where compute resources will be created (service project)
+project_id = "your-compute-project-id"
+
+# GCP project ID where the Shared VPC network is hosted (host project)
+network_project_id = "your-network-project-id"
+
+# Friendly name used as prefix for resource naming
+project_name = "cuda-dev"
+
+# Environment identifier (gpu, dev, test, prod)
+environment = "gpu"
+
+##########################
+# Required: Location Configuration
+##########################
+# GCP region (must match your network subnet region)
+region = "us-central1"
+
+# GCP zone (must be within the specified region)
+# Note: Not all zones support GPUs - check availability
+zone = "us-central1-a"
+
+##########################
+# Required: Network State Configuration
+##########################
+# GCS bucket containing the network module's Terraform state
+network_state_bucket = "your-org-terraform-state-dev"
+
+# Path prefix in the bucket where network state is stored
+network_state_prefix = "network/vpc/dev"
+
+##########################
+# GPU Configuration (RECOMMENDED)
+##########################
+# Machine type (must be GPU-compatible: n1-standard-*, n1-highmem-*, etc.)
+# n1-standard-4 = 4 vCPU, 15 GB RAM (~$0.19/hour + GPU cost)
+machine_type = "n1-standard-4"
+
+# Operating system image
+# Popular options:
+#   - debian-cloud/debian-12 (Debian 12)
+#   - ubuntu-os-cloud/ubuntu-2204-lts (Ubuntu 22.04)
+#   - centos-cloud/centos-stream-9 (CentOS Stream 9)
+boot_disk_image = "debian-cloud/debian-12"
+
+# Boot disk size in GB (10-65536)
+# Free tier: up to 30 GB standard persistent disk per month
+boot_disk_size = 10
+
+# Boot disk type
+# Options: pd-standard (cheapest), pd-balanced, pd-ssd (fastest)
+boot_disk_type = "pd-standard"
+
+##########################
+# Optional: Network Configuration
+##########################
+# Assign ephemeral external IP (true) or use Cloud NAT only (false)
+# Recommended: false (more secure, no inbound exposure)
+assign_external_ip = false
+
+# Add network tags for SSH via Identity-Aware Proxy
+# Requires IAP firewall rule (35.235.240.0/20)
+enable_ssh_access = true
+
+# Additional custom network tags for firewall rules
+# network_tags = ["web-server", "allow-health-check"]
+
+##########################
+# Optional: Service Account Configuration
+##########################
+# Custom service account email (leave empty for default Compute Engine SA)
+# service_account_email = "custom-sa@your-project.iam.gserviceaccount.com"
+
+# OAuth scopes for API access
+# service_account_scopes = [
+#   "https://www.googleapis.com/auth/cloud-platform"  # Full access
+#   # Or use granular scopes:
+#   # "https://www.googleapis.com/auth/devstorage.read_only",
+#   # "https://www.googleapis.com/auth/logging.write",
+#   # "https://www.googleapis.com/auth/monitoring.write"
+# ]
+
+##########################
+# Optional: Startup Script
+##########################
+# Shell script to run on instance boot
+# Example: Install nginx web server
+startup_script = <<-EOF
+#!/bin/bash
+set -e
+
+# Update system
+apt-get update
+apt-get install -y nginx
+
+# Start nginx
+systemctl enable nginx
+systemctl start nginx
+
+# Create custom welcome page
+echo "<h1>Hello from $(hostname)</h1>" > /var/www/html/index.html
+EOF
+
+##########################
+# Optional: Metadata
+##########################
+# Custom metadata key-value pairs
+# metadata = {
+#   foo = "bar"
+#   serial-port-enable = "TRUE"
+# }
+
+##########################
+# Optional: Resource Labels
+##########################
+# Labels for resource organization and billing attribution
+labels = {
+  owner       = "your-team"
+  cost_center = "engineering"
+  application = "web-app"
+}
+
+##########################
+# Optional: Security Settings
+##########################
+# Enable deletion protection (recommended for production)
+deletion_protection = false

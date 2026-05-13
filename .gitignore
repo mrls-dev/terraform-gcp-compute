@@ -1,0 +1,165 @@
+##########################
+# Terraform Files
+##########################
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform lock file (commit this for production, optional for modules)
+# Uncomment to exclude: .terraform.lock.hcl
+
+# Terraform state files (NEVER commit these!)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform plan files
+*.tfplan
+tfplan
+tfplan.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files (may contain sensitive data)
+# But allow example files
+*.tfvars
+*.auto.tfvars
+!terraform.tfvars.example
+!example.tfvars
+!*.example.tfvars
+
+# Ignore override files (used for local testing)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore transient lock files
+.terraform.tfstate.lock.info
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+##########################
+# IDE and Editor Files
+##########################
+# JetBrains IDEs (IntelliJ, PyCharm, etc.)
+.idea/
+*.iml
+*.iws
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+*.swap
+.*.swp
+.*.swo
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+##########################
+# OS Files
+##########################
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+
+##########################
+# Backup and Temporary Files
+##########################
+*.backup
+*.bak
+*.tmp
+*.temp
+*.old
+*.orig
+
+##########################
+# Security and Secrets
+##########################
+# Service account keys (NEVER commit these!)
+*.json
+!*.example.json
+!.terraform-docs.yml
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+secrets.auto.tfvars
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+##########################
+# Testing and CI/CD
+##########################
+# Test results
+.terraform/
+.test/
+test-results/
+*.test
+
+# Coverage reports
+coverage/
+*.coverage
+
+##########################
+# Documentation Build Artifacts
+##########################
+# Generated documentation
+.terraform-docs/
+
+##########################
+# Package Manager Directories
+##########################
+node_modules/
+vendor/
+
+##########################
+# Logs
+##########################
+*.log
+logs/
+
