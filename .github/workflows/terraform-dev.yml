@@ -123,7 +123,8 @@ jobs:
               body: output
             })
 
-      - name|
+      - name: Terraform Apply
+        if: |
           (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
           (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
         run: terraform apply -auto-approve tfplan
@@ -155,9 +156,4 @@ jobs:
           terraform output -raw ssh_command
           echo ""
           echo "🧪 Test CUDA:"
-          echo "cd /opt/cuda-samples && ./hello_cuda"me == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan-dev-compute
-          path: tfplan
-          retention-days: 5
+          echo "cd /opt/cuda-samples && ./hello_cuda"
