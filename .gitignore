@@ -22,12 +22,13 @@ crash.log
 crash.*.log
 
 # Exclude all .tfvars files (may contain sensitive data)
-# But allow example files
+# But allow example files and gpu.tfvars (safe for public repo)
 *.tfvars
 *.auto.tfvars
 !terraform.tfvars.example
 !example.tfvars
 !*.example.tfvars
+!gpu.tfvars
 
 # Ignore override files (used for local testing)
 override.tf
