@@ -87,9 +87,10 @@ resource "google_compute_instance" "app_vm" {
 
   # GPU-specific scheduling configuration
   # on_host_maintenance must be TERMINATE for GPU instances
+  # automatic_restart must be false for preemptible instances
   scheduling {
     on_host_maintenance = var.enable_gpu ? "TERMINATE" : "MIGRATE"
-    automatic_restart   = true
+    automatic_restart   = !var.enable_preemptible # Preemptible instances cannot auto-restart
     preemptible         = var.enable_preemptible
   }
 
