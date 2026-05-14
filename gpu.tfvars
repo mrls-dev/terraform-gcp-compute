@@ -2,6 +2,7 @@
 # GPU Environment Configuration
 ##########################
 # Configuration for GPU-enabled instances for CUDA kernel development
+# Uses Google Deep Learning VM with pre-installed NVIDIA drivers and CUDA
 # Cost estimate: ~$0.50/hour with T4 GPU (or ~$0.15/hour with preemptible)
 
 ##########################
@@ -43,16 +44,17 @@ enable_gpu = true
 gpu_type   = "nvidia-tesla-t4" # $0.35/hour (cheapest option)
 gpu_count  = 1
 
-# Automatically install NVIDIA drivers on boot
-enable_nvidia_driver_autoinstall = true
+# NVIDIA driver auto-install not needed - Deep Learning VM has drivers pre-installed
+enable_nvidia_driver_autoinstall = false
 
 ##########################
 # Disk Configuration
 ##########################
-# Ubuntu 22.04 LTS (better CUDA support than Debian)
-boot_disk_image = "ubuntu-os-cloud/ubuntu-2204-lts"
+# Google Deep Learning VM - Ubuntu 22.04 with CUDA 12.9 and NVIDIA drivers pre-installed
+# This eliminates manual driver/CUDA installation issues
+boot_disk_image = "deeplearning-platform-release/common-cu129-ubuntu-2204-nvidia-580"
 
-# Larger disk for CUDA toolkit, datasets, and development
+# Larger disk for datasets and development
 boot_disk_size = 50 # GB
 
 # SSD for better I/O performance
@@ -77,6 +79,7 @@ enable_preemptible = true
 ##########################
 # Startup Script - CUDA Development Environment
 ##########################
+# Note: Deep Learning VM comes with NVIDIA drivers, CUDA 12.9, and Python 3.12 pre-installed
 startup_script = <<-EOF
 #!/bin/bash
 set -e
@@ -85,82 +88,35 @@ set -e
 exec > >(tee /var/log/startup-script.log)
 exec 2>&1
 
-echo "=== Starting CUDA Development Environment Setup ==="
+echo "=== Deep Learning VM Setup ==="
 echo "Timestamp: $(date)"
 
-# Update system
-echo "[1/7] Updating system packages..."
-apt-get update
-apt-get upgrade -y
+# Verify NVIDIA drivers and CUDA are working
+echo "[1/4] Verifying GPU setup..."
+nvidia-smi
+nvcc --version
 
-# Install development tools
-echo "[2/7] Installing development tools..."
+# Install additional development tools
+echo "[2/4] Installing additional tools..."
+apt-get update
 apt-get install -y \
-  build-essential \
   git \
-  wget \
-  curl \
   vim \
   tmux \
   htop \
-  nvtop \
-  python3-pip \
-  python3-dev
+  nvtop
 
-# Wait for NVIDIA driver installation (triggered by metadata)
-echo "[3/7] Waiting for NVIDIA driver installation..."
-max_wait=300  # 5 minutes timeout
-elapsed=0
-while ! nvidia-smi &>/dev/null; do
-  if [ $elapsed -ge $max_wait ]; then
-    echo "ERROR: NVIDIA driver installation timeout"
-    exit 1
-  fi
-  echo "Waiting for NVIDIA drivers... ($elapsed seconds)"
-  sleep 10
-  elapsed=$((elapsed + 10))
-done
-
-echo "NVIDIA driver installed successfully!"
-nvidia-smi
-
-# Install CUDA Toolkit 12.3
-echo "[4/7] Installing CUDA Toolkit 12.3..."
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-dpkg -i cuda-keyring_1.1-1_all.deb
-apt-get update
-apt-get install -y cuda-toolkit-12-3 cuda-drivers
-
-# Set up CUDA environment variables
-echo "[5/7] Configuring CUDA environment..."
-cat >> /etc/profile.d/cuda.sh <<'CUDA_ENV'
-export PATH=/usr/local/cuda-12.3/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-12.3/lib64:$LD_LIBRARY_PATH
-export CUDA_HOME=/usr/local/cuda-12.3
-CUDA_ENV
-
-# Make it available immediately
-source /etc/profile.d/cuda.sh
-
-# Install Python packages for ML/CUDA development
-echo "[6/7] Installing Python packages..."
+# Install additional Python packages for CUDA development
+echo "[3/4] Installing Python packages..."
 pip3 install --upgrade pip
 pip3 install \
-  numpy \
-  scipy \
-  matplotlib \
-  jupyter \
   jupyterlab \
-  pandas \
-  scikit-learn \
-  torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-  tensorflow[and-cuda] \
   cupy-cuda12x \
   numba \
   pycuda
 
 # Create CUDA samples directory
-echo "[7/7] Setting up CUDA samples..."
+echo "[4/4] Setting up CUDA samples..."
 mkdir -p /opt/cuda-samples
 cd /opt/cuda-samples
 
@@ -200,11 +156,20 @@ int main() {
 HELLO_CUDA
 
 # Compile the test program
-/usr/local/cuda-12.3/bin/nvcc hello_cuda.cu -o hello_cuda
+nvcc hello_cuda.cu -o hello_cuda
 
 # Create a welcome README
 cat > /opt/cuda-samples/README.md <<'README'
 # CUDA Development Environment
+# Google Deep Learning VM - Ubuntu 22.04, CUDA 12.9, Python 3.12
+
+## Pre-installed Software
+- NVIDIA Driver 580
+- CUDA Toolkit 12.9
+- cuDNN
+- PyTorch (with CUDA support)
+- TensorFlow (with CUDA support)
+- Python 3.12
 
 ## Quick Start
 
@@ -247,54 +212,31 @@ print(f"CuPy array on GPU: {x}")
 ### Start Jupyter Lab (for remote development)
 ```bash
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
-# Then use IAP tunnel: gcloud compute start-iap-tunnel INSTANCE_NAME 8888
+# Then use IAP tunnel from your local machine:
+# gcloud compute start-iap-tunnel INSTANCE_NAME 8888 --local-host-port=localhost:8888
 ```
 
-## CUDA Samples Location
-- CUDA Toolkit: `/usr/local/cuda-12.3/`
-- Sample programs: `/opt/cuda-samples/`
-- NVIDIA samples: `/usr/local/cuda-12.3/samples/`
-
-## Monitor GPU Usage
-```bash
-# Real-time monitoring
-nvidia-smi -l 1
-
-# Or use nvtop (installed)
-nvtop
-```
-
-## Cost Warning
-This is a preemptible GPU instance (~$0.15/hour).
-Save your work frequently as the instance may be terminated!
+## Resources
+- [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
+- [PyTorch CUDA Semantics](https://pytorch.org/docs/stable/notes/cuda.html)
+- [TensorFlow GPU Guide](https://www.tensorflow.org/guide/gpu)
 README
 
-# Set permissions
-chmod +x /opt/cuda-samples/hello_cuda
-chmod 644 /opt/cuda-samples/README.md
-
-# Print completion message
-echo ""
-echo "========================================="
-echo "CUDA Development Environment Ready! 🚀"
-echo "========================================="
+echo "=== Setup Complete! ==="
 echo ""
 echo "GPU Information:"
-nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
 echo ""
 echo "CUDA Version:"
 nvcc --version | grep "release"
 echo ""
-echo "Quick Start Guide: /opt/cuda-samples/README.md"
+echo "Python Version:"
+python3 --version
 echo ""
-echo "Test CUDA: cd /opt/cuda-samples && ./hello_cuda"
+echo "Ready for CUDA development!"
+echo "Check /opt/cuda-samples/README.md for usage instructions"
 echo ""
 echo "Log file: /var/log/startup-script.log"
-echo "========================================="
-
-# Mark setup as complete
-touch /var/log/cuda-setup-complete
-logger "CUDA development environment setup completed successfully"
 EOF
 
 ##########################

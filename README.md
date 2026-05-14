@@ -4,13 +4,14 @@ Production-ready Terraform module for deploying GPU-enabled compute instances on
 
 ## Overview
 
-This module creates a GPU-enabled compute instance with NVIDIA Tesla T4 GPU, pre-configured with CUDA toolkit, PyTorch, TensorFlow, and Jupyter Lab for interactive development.
+This module creates a GPU-enabled compute instance with NVIDIA Tesla T4 GPU, using Google's Deep Learning VM image pre-configured with NVIDIA drivers, CUDA 12.9, and ML frameworks for immediate development.
 
 ## Features
 
 - **GPU-Enabled**: NVIDIA Tesla T4 (16GB VRAM, 2560 CUDA cores)
-- **CUDA Toolkit**: Pre-installed CUDA 12.3 with samples
-- **ML Frameworks**: PyTorch, TensorFlow, CuPy, PyCUDA, Numba
+- **Deep Learning VM**: Google's pre-built image with drivers and CUDA pre-installed
+- **CUDA Toolkit**: CUDA 12.9 with NVIDIA Driver 580 (no manual installation needed)
+- **ML Frameworks**: PyTorch, TensorFlow, CuPy, PyCUDA, Numba (pre-installed)
 - **Jupyter Lab**: Interactive development environment with GPU access
 - **Cost-Optimized**: Preemptible instances (~70% savings, ~$0.15/hour)
 - **Shared VPC**: Network isolation with service/host project architecture
@@ -81,7 +82,8 @@ gpu_type           = "nvidia-tesla-t4"
 gpu_count          = 1
 enable_preemptible = true  # Save 70% on costs!
 
-boot_disk_image    = "ubuntu-os-cloud/ubuntu-2204-lts"
+# Google Deep Learning VM with CUDA 12.9 pre-installed
+boot_disk_image    = "deeplearning-platform-release/common-cu129-ubuntu-2204-nvidia-580"
 boot_disk_size     = 50
 
 network_state_bucket = "your-terraform-state-bucket"
