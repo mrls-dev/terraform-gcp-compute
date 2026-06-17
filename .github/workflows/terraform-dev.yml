@@ -86,7 +86,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -var-file=gpu.tfvars -no-color -out=tfplan
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Comment PR with Plan
         if: github.event_name == 'pull_request'
@@ -124,8 +124,9 @@ jobs:
 
       - name: Terraform Apply
         if: |
-          (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
-          (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+          steps.plan.outcome == 'success' &&
+          ((github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
         run: terraform apply -auto-approve tfplan
 
       - name: Terraform Destroy
