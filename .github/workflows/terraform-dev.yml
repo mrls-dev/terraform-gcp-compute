@@ -30,7 +30,7 @@ on:
           - destroy
 
 env:
-  TERRAFORM_VERSION: '1.5.0'
+  TERRAFORM_VERSION: '1.14.7'
   WORKING_DIR: '.'
   GCP_PROJECT_ID: 'project-70f3c2b9-8f91-41f7-b5c'
   GCP_REGION: 'us-central1'
