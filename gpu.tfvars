@@ -44,18 +44,17 @@ enable_gpu = true
 gpu_type   = "nvidia-tesla-t4" # $0.35/hour (cheapest option)
 gpu_count  = 1
 
-# NVIDIA driver auto-install not needed - Deep Learning VM has drivers pre-installed
-enable_nvidia_driver_autoinstall = false
+# RHEL does not have pre-installed drivers - enable auto-install
+enable_nvidia_driver_autoinstall = true
 
 ##########################
 # Disk Configuration
 ##########################
-# Google Deep Learning VM - Ubuntu 22.04 with CUDA 12.9 and NVIDIA drivers pre-installed
-# This eliminates manual driver/CUDA installation issues
-boot_disk_image = "deeplearning-platform-release/common-cu129-ubuntu-2204-nvidia-580"
+# RHEL 8 - requires manual CUDA installation after driver setup
+boot_disk_image = "rhel-cloud/rhel-8"
 
-# Larger disk for datasets and development
-boot_disk_size = 50 # GB
+# Larger disk for CUDA toolkit and development
+boot_disk_size = 100 # GB
 
 # SSD for better I/O performance
 boot_disk_type = "pd-balanced"
