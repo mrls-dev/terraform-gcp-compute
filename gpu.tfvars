@@ -50,8 +50,8 @@ enable_nvidia_driver_autoinstall = true
 ##########################
 # Disk Configuration
 ##########################
-# RHEL 8 - requires manual CUDA installation after driver setup
-boot_disk_image = "rhel-cloud/rhel-8"
+# RHEL 10 - requires manual CUDA installation after driver setup
+boot_disk_image = "rhel-cloud/rhel-10-0-eus"
 
 # Larger disk for CUDA toolkit and development
 boot_disk_size = 100 # GB
