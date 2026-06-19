@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial stable release
 
+## [1.0.1] - 2026-06-19
+### Added
+- CUDA Auto installation based on OS flavour
+
 ---
 
 **Legend:**
