@@ -2,7 +2,7 @@
 #
 # RHEL GPU Setup Script
 # Supports RHEL 8, 9, 10 with CUDA 13.3 and PyTorch, and CuPy
-# Note: RHEL 9, 10 Needs additional testing
+# Note: RHEL 10 Needs additional testing
 
 # --- BASH SAFE MODE ---
 set -euo pipefail
