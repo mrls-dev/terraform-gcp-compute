@@ -111,15 +111,15 @@ else
 
     # --- INSTALL CUDA TOOLKIT AND DRIVERS ---
     echo "[7/12] Installing CUDA toolkit and NVIDIA drivers..."
-    if [ "$RHEL_VERSION" -eq 8 ]; then
-        echo "[INFO] Using RHEL 8 installation method..."
+    if [[ "$RHEL_VERSION" -eq 8 || "$RHEL_VERSION" -eq 9 ]]; then
+        echo "[INFO] Using RHEL 8, 9 installation method..."
         # Install CUDA toolkit first
         sudo dnf install -y cuda-toolkit-13-3
         
         # Install NVIDIA driver via module
         sudo dnf module install -y nvidia-driver:latest-dkms
     else
-        echo "[INFO] Using RHEL 9/10 installation method..."
+        echo "[INFO] Using RHEL 10 installation method..."
         sudo dnf install -y cuda-toolkit-13-3 nvidia-driver-latest-dkms
     fi
     echo "[OK] CUDA toolkit and drivers installed"
@@ -309,10 +309,13 @@ echo ""
 if nvidia-smi &>/dev/null; then
     echo "[OK] GPU is already working!"
     echo ""
-    echo "  1. Activate environment:"
+    echo "  1. Reload shell environment (to enable nvcc):"
+    echo "     source ~/.bashrc"
+    echo ""
+    echo "  2. Activate Python environment:"
     echo "     source ~/ag-env/bin/activate"
     echo ""
-    echo "  2. Run verification:"
+    echo "  3. Run verification:"
     echo "     python ~/verify_gpu.py"
 else
     echo "[WARNING] Reboot required to load NVIDIA drivers:"
@@ -320,10 +323,13 @@ else
     echo "  1. Reboot the system:"
     echo "     sudo reboot"
     echo ""
-    echo "  2. After reboot, activate environment:"
+    echo "  2. After reboot, reload shell environment:"
+    echo "     source ~/.bashrc"
+    echo ""
+    echo "  3. Activate Python environment:"
     echo "     source ~/ag-env/bin/activate"
     echo ""
-    echo "  3. Run verification:"
+    echo "  4. Run verification:"
     echo "     python ~/verify_gpu.py"
 fi
 echo ""
